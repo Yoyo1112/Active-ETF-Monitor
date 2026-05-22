@@ -59,8 +59,16 @@
         </div>
       </div>
       <div class="field">
-        <label for="baseSelect">比較基準日</label>
-        <select id="baseSelect"><option value="">（不比較）</option></select>
+        <label for="baseInput">比較基準日</label>
+        <div class="input-row">
+          <input type="date" id="baseInput" />
+          <button id="baseClear" class="btn btn-ghost" type="button" title="清除比較">清除</button>
+        </div>
+        <div class="preset-row" id="basePresets">
+          <button class="preset-btn" type="button" data-preset="1d">前一天</button>
+          <button class="preset-btn" type="button" data-preset="1w">一週前</button>
+          <button class="preset-btn" type="button" data-preset="1m">一個月前</button>
+        </div>
       </div>
     </section>
 

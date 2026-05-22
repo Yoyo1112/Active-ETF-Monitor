@@ -192,6 +192,32 @@ input[type="date"]:focus-visible, select:focus-visible,
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-primary:hover { background: var(--primary-hover); }
 .btn:active { transform: translateY(1px); }
+.btn-ghost {
+  background: var(--surface);
+  color: var(--muted);
+  border-color: var(--line);
+}
+.btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+
+.preset-row { display: flex; gap: 6px; margin-top: 8px; }
+.preset-btn {
+  flex: 1;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 600;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.preset-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--primary);
+}
 
 .etf-tabs { display: flex; gap: 8px; }
 .etf-tab {
