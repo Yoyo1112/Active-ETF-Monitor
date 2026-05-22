@@ -59,8 +59,16 @@
         </div>
       </div>
       <div class="field">
-        <label for="baseSelect">比較基準日</label>
-        <select id="baseSelect"><option value="">（不比較）</option></select>
+        <label for="baseInput">比較基準日</label>
+        <div class="input-row">
+          <input type="date" id="baseInput" />
+          <button id="baseClear" class="btn btn-ghost" type="button" title="清除比較">清除</button>
+        </div>
+        <div class="preset-row" id="basePresets">
+          <button class="preset-btn" type="button" data-preset="1d">前一天</button>
+          <button class="preset-btn" type="button" data-preset="1w">一週前</button>
+          <button class="preset-btn" type="button" data-preset="1m">一個月前</button>
+        </div>
       </div>
     </section>
 
@@ -68,7 +76,16 @@
 
     <section id="kpiSection" class="kpi-grid hidden" aria-label="重點指標"></section>
 
-    <section id="portfolioSection" class="card section">
+    <div class="view-tabs" id="viewTabs" role="tablist" aria-label="檢視切換">
+      <button class="view-tab active" type="button" role="tab"
+              aria-selected="true" data-view="portfolio">當日投資組合</button>
+      <button class="view-tab" type="button" role="tab"
+              aria-selected="false" data-view="diff">
+        差異比對<span id="diffTabBadge" class="badge change hidden">0</span>
+      </button>
+    </div>
+
+    <section id="portfolioSection" class="card section" role="tabpanel">
       <div class="section-head">
         <h2>當日投資組合</h2>
         <span id="portfolioMeta" class="meta"></span>
@@ -89,11 +106,12 @@
       </div>
     </section>
 
-    <section id="diffSection" class="card section hidden">
+    <section id="diffSection" class="card section hidden" role="tabpanel">
       <div class="section-head">
         <h2>差異比對</h2>
         <span id="diffMeta" class="meta"></span>
       </div>
+      <p id="diffHint" class="empty">請在上方選擇「比較基準日」即可顯示差異。</p>
       <div id="diffBlocks"></div>
     </section>
   </main>

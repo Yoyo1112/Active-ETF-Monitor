@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { etf: null, etfs: [], maxWeight: 0 };
+const state = { etf: null, etfs: [], maxWeight: 0, view: "portfolio" };
 
 const $ = (sel) => document.querySelector(sel);
 const statusEl = $("#status");
@@ -103,7 +103,6 @@ async function loadPortfolio(dateStr) {
   }
   renderPortfolio(data);
   renderKpis(data);
-  await refreshDates();
   setStatus(data.cached ? "資料來自本地快取" : "");
   return data;
 }
@@ -115,7 +114,6 @@ function renderKpis(data) {
     kpi.classList.add("hidden");
     return;
   }
-  const totalShares = holdings.reduce((s, h) => s + Number(h.share), 0);
   const top = holdings.reduce((a, b) => (b.weight > a.weight ? b : a), holdings[0]);
   const top10 = [...holdings].sort((a, b) => b.weight - a.weight).slice(0, 10);
   const top10Weight = top10.reduce((s, h) => s + h.weight, 0);
@@ -124,7 +122,6 @@ function renderKpis(data) {
     { label: "持股檔數", value: holdings.length, sub: data.tran_date || "" },
     { label: "最大持股", value: esc(top.name), sub: `${esc(top.code)}　${fmtPct(top.weight)}` },
     { label: "前十大權重", value: fmtPct(top10Weight), sub: "Top 10 集中度" },
-    { label: "總持有股數", value: fmtInt(totalShares), sub: "全部標的合計" },
   ];
   kpi.innerHTML = cards
     .map(
@@ -167,30 +164,42 @@ function renderPortfolio(data) {
   });
 }
 
-// ---- Base date select ----
-async function refreshDates() {
-  const dates = await (await fetch("/api/dates?etf=" + state.etf)).json();
-  const sel = $("#baseSelect");
-  const cur = $("#dateInput").value;
-  const prev = sel.value;
-  sel.innerHTML = '<option value="">（不比較）</option>';
-  dates.forEach((d) => {
-    if (d === cur) return;
-    const o = document.createElement("option");
-    o.value = d;
-    o.textContent = d;
-    sel.appendChild(o);
+// ---- Base date presets ----
+function shiftDate(iso, preset) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  if (preset === "1d") dt.setDate(dt.getDate() - 1);
+  else if (preset === "1w") dt.setDate(dt.getDate() - 7);
+  else if (preset === "1m") dt.setMonth(dt.getMonth() - 1);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}`;
+}
+
+// ---- View tabs ----
+function setView(view) {
+  state.view = view;
+  document.querySelectorAll(".view-tab").forEach((t) => {
+    const on = t.dataset.view === view;
+    t.classList.toggle("active", on);
+    t.setAttribute("aria-selected", on ? "true" : "false");
   });
-  if (prev && [...sel.options].some((o) => o.value === prev)) sel.value = prev;
+  $("#portfolioSection").classList.toggle("hidden", view !== "portfolio");
+  $("#diffSection").classList.toggle("hidden", view !== "diff");
 }
 
 // ---- Diff ----
+function setDiffEmpty() {
+  $("#diffMeta").textContent = "";
+  $("#diffBlocks").innerHTML = "";
+  $("#diffHint").classList.remove("hidden");
+  $("#diffTabBadge").classList.add("hidden");
+}
+
 async function loadDiff() {
-  const base = $("#baseSelect").value;
+  const base = $("#baseInput").value;
   const cur = $("#dateInput").value;
-  const sec = $("#diffSection");
   if (!base || !cur) {
-    sec.classList.add("hidden");
+    setDiffEmpty();
     return;
   }
   setStatus("比對中…");
@@ -225,6 +234,7 @@ function holdingsTable(rows, cols) {
 
 function renderDiff(data) {
   $("#diffMeta").textContent = `${data.base} → ${data.date}`;
+  $("#diffHint").classList.add("hidden");
   const blocks = $("#diffBlocks");
   blocks.innerHTML = "";
 
@@ -259,13 +269,18 @@ function renderDiff(data) {
     blocks.appendChild(div);
   });
 
-  $("#diffSection").classList.remove("hidden");
+  const total =
+    (data.added || []).length + (data.removed || []).length + (data.changed || []).length;
+  const badge = $("#diffTabBadge");
+  badge.textContent = total;
+  badge.classList.toggle("hidden", total === 0);
 }
 
 // ---- Events ----
 function loadLatest() {
-  $("#baseSelect").value = "";
-  $("#diffSection").classList.add("hidden");
+  $("#baseInput").value = "";
+  setDiffEmpty();
+  setView("portfolio");
   loadPortfolio(null);
 }
 
@@ -275,7 +290,27 @@ $("#queryBtn").onclick = async () => {
   await loadPortfolio(d);
   await loadDiff();
 };
-$("#baseSelect").onchange = loadDiff;
+$("#baseInput").onchange = async () => {
+  await loadDiff();
+  if ($("#baseInput").value) setView("diff");
+};
+$("#baseClear").onclick = () => {
+  $("#baseInput").value = "";
+  setDiffEmpty();
+  setView("portfolio");
+};
+document.querySelectorAll(".preset-btn").forEach((b) => {
+  b.onclick = async () => {
+    const cur = $("#dateInput").value;
+    if (!cur) return;
+    $("#baseInput").value = shiftDate(cur, b.dataset.preset);
+    await loadDiff();
+    setView("diff");
+  };
+});
+document.querySelectorAll(".view-tab").forEach((t) => {
+  t.onclick = () => setView(t.dataset.view);
+});
 
 // ---- Boot ----
 (async function main() {
