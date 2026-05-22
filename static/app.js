@@ -1,6 +1,6 @@
 "use strict";
 
-const state = { etf: null, etfs: [], maxWeight: 0 };
+const state = { etf: null, etfs: [], maxWeight: 0, view: "portfolio" };
 
 const $ = (sel) => document.querySelector(sel);
 const statusEl = $("#status");
@@ -184,13 +184,31 @@ async function refreshDates() {
   if (prev && [...sel.options].some((o) => o.value === prev)) sel.value = prev;
 }
 
+// ---- View tabs ----
+function setView(view) {
+  state.view = view;
+  document.querySelectorAll(".view-tab").forEach((t) => {
+    const on = t.dataset.view === view;
+    t.classList.toggle("active", on);
+    t.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  $("#portfolioSection").classList.toggle("hidden", view !== "portfolio");
+  $("#diffSection").classList.toggle("hidden", view !== "diff");
+}
+
 // ---- Diff ----
+function setDiffEmpty() {
+  $("#diffMeta").textContent = "";
+  $("#diffBlocks").innerHTML = "";
+  $("#diffHint").classList.remove("hidden");
+  $("#diffTabBadge").classList.add("hidden");
+}
+
 async function loadDiff() {
   const base = $("#baseSelect").value;
   const cur = $("#dateInput").value;
-  const sec = $("#diffSection");
   if (!base || !cur) {
-    sec.classList.add("hidden");
+    setDiffEmpty();
     return;
   }
   setStatus("比對中…");
@@ -225,6 +243,7 @@ function holdingsTable(rows, cols) {
 
 function renderDiff(data) {
   $("#diffMeta").textContent = `${data.base} → ${data.date}`;
+  $("#diffHint").classList.add("hidden");
   const blocks = $("#diffBlocks");
   blocks.innerHTML = "";
 
@@ -259,13 +278,18 @@ function renderDiff(data) {
     blocks.appendChild(div);
   });
 
-  $("#diffSection").classList.remove("hidden");
+  const total =
+    (data.added || []).length + (data.removed || []).length + (data.changed || []).length;
+  const badge = $("#diffTabBadge");
+  badge.textContent = total;
+  badge.classList.toggle("hidden", total === 0);
 }
 
 // ---- Events ----
 function loadLatest() {
   $("#baseSelect").value = "";
-  $("#diffSection").classList.add("hidden");
+  setDiffEmpty();
+  setView("portfolio");
   loadPortfolio(null);
 }
 
@@ -275,7 +299,13 @@ $("#queryBtn").onclick = async () => {
   await loadPortfolio(d);
   await loadDiff();
 };
-$("#baseSelect").onchange = loadDiff;
+$("#baseSelect").onchange = async () => {
+  await loadDiff();
+  if ($("#baseSelect").value) setView("diff");
+};
+document.querySelectorAll(".view-tab").forEach((t) => {
+  t.onclick = () => setView(t.dataset.view);
+});
 
 // ---- Boot ----
 (async function main() {
