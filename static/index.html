@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>主動式 ETF 投資組合查詢</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>主動式 ETF 投資組合</h1>
+    <p class="sub">資料來源：ezmoney 申購買回清單 (PCF)</p>
+  </header>
+
+  <section class="controls">
+    <div class="field">
+      <label>ETF</label>
+      <div class="etf-tabs" id="etfTabs"></div>
+    </div>
+    <div class="field">
+      <label for="dateInput">查詢日期</label>
+      <input type="date" id="dateInput" />
+      <button id="queryBtn" class="btn">查詢</button>
+    </div>
+    <div class="field">
+      <label for="baseSelect">比較基準日</label>
+      <select id="baseSelect"><option value="">（不比較）</option></select>
+    </div>
+  </section>
+
+  <p id="status" class="status"></p>
+
+  <section id="portfolioSection">
+    <h2>當日投資組合 <span id="portfolioMeta" class="meta"></span></h2>
+    <div class="table-wrap">
+      <table id="portfolioTable">
+        <thead>
+          <tr><th>#</th><th>股票代號</th><th>股票名稱</th>
+              <th class="num">持有股數</th><th class="num">持有權重</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="diffSection" class="hidden">
+    <h2>差異比對 <span id="diffMeta" class="meta"></span></h2>
+    <div id="diffBlocks"></div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
