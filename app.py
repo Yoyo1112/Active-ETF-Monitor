@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 import store
 from ezmoney import FUND_CODES, EzmoneyError, fetch_pcf
+from holidays import default_query_date
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 store.init_db()
@@ -42,7 +43,11 @@ def api_portfolio():
         return jsonify({"error": "未知的 ETF 代號"}), 400
 
     date_str = request.args.get("date")
-    want_date = _parse_iso(date_str) if date_str else None
+    if date_str:
+        want_date = _parse_iso(date_str)
+    else:
+        # 沒帶日期：依台北時間決定預設 — 17:30 後券商已公告下一交易日 PCF，自動往後推
+        want_date = default_query_date()
 
     # 有指定日且快取已有 -> 直接回快取
     if want_date:
@@ -65,10 +70,12 @@ def api_portfolio():
 
     tran_date = result["tran_date"]
     if not result["holdings"] or tran_date is None:
+        # 回傳實際請求的日期 (避免 17:30 後預設下個交易日但 ezmoney 尚未有資料時 UI 變空)
+        fallback_iso = date_str or want_date.isoformat()
         return jsonify(
             {
                 "etf": etf,
-                "tran_date": date_str,
+                "tran_date": fallback_iso,
                 "holdings": [],
                 "message": "當日無資料（可能為非揭露日或基金成立前）",
             }
