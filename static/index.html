@@ -1,52 +1,120 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>主動式 ETF 投資組合查詢</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@300;400;500;600;700&display=swap" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>主動式 ETF 投資組合</h1>
-    <p class="sub">資料來源：ezmoney 申購買回清單 (PCF)</p>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v18h18" />
+          <path d="m7 15 4-4 3 3 5-6" />
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1>主動式 ETF 投資組合</h1>
+        <p class="sub">資料來源：ezmoney 申購買回清單（PCF）</p>
+      </div>
+    </div>
+    <button id="themeToggle" class="icon-btn" type="button"
+            aria-label="切換深色 / 淺色模式" title="切換深色 / 淺色模式">
+      <svg class="ico-sun" viewBox="0 0 24 24" width="20" height="20" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+      </svg>
+      <svg class="ico-moon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </svg>
+    </button>
   </header>
 
-  <section class="controls">
-    <div class="field">
-      <label>ETF</label>
-      <div class="etf-tabs" id="etfTabs"></div>
-    </div>
-    <div class="field">
-      <label for="dateInput">查詢日期</label>
-      <input type="date" id="dateInput" />
-      <button id="queryBtn" class="btn">查詢</button>
-    </div>
-    <div class="field">
-      <label for="baseSelect">比較基準日</label>
-      <select id="baseSelect"><option value="">（不比較）</option></select>
-    </div>
-  </section>
+  <main class="container">
+    <section class="controls card" aria-label="查詢條件">
+      <div class="field">
+        <label id="etfLabel">ETF 標的</label>
+        <div class="etf-tabs" id="etfTabs" role="tablist" aria-labelledby="etfLabel"></div>
+      </div>
+      <div class="field">
+        <label for="dateInput">查詢日期</label>
+        <div class="input-row">
+          <input type="date" id="dateInput" />
+          <button id="queryBtn" class="btn btn-primary" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
+            </svg>
+            查詢
+          </button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="baseInput">比較基準日</label>
+        <div class="input-row">
+          <input type="date" id="baseInput" />
+          <button id="baseClear" class="btn btn-ghost" type="button" title="清除比較">清除</button>
+        </div>
+        <div class="preset-row" id="basePresets">
+          <button class="preset-btn" type="button" data-preset="1d">前一天</button>
+          <button class="preset-btn" type="button" data-preset="1w">一週前</button>
+          <button class="preset-btn" type="button" data-preset="1m">一個月前</button>
+        </div>
+      </div>
+    </section>
 
-  <p id="status" class="status"></p>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
 
-  <section id="portfolioSection">
-    <h2>當日投資組合 <span id="portfolioMeta" class="meta"></span></h2>
-    <div class="table-wrap">
-      <table id="portfolioTable">
-        <thead>
-          <tr><th>#</th><th>股票代號</th><th>股票名稱</th>
-              <th class="num">持有股數</th><th class="num">持有權重</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <section id="kpiSection" class="kpi-grid hidden" aria-label="重點指標"></section>
+
+    <div class="view-tabs" id="viewTabs" role="tablist" aria-label="檢視切換">
+      <button class="view-tab active" type="button" role="tab"
+              aria-selected="true" data-view="portfolio">當日投資組合</button>
+      <button class="view-tab" type="button" role="tab"
+              aria-selected="false" data-view="diff">
+        差異比對<span id="diffTabBadge" class="badge change hidden">0</span>
+      </button>
     </div>
-  </section>
 
-  <section id="diffSection" class="hidden">
-    <h2>差異比對 <span id="diffMeta" class="meta"></span></h2>
-    <div id="diffBlocks"></div>
-  </section>
+    <section id="portfolioSection" class="card section" role="tabpanel">
+      <div class="section-head">
+        <h2>當日投資組合</h2>
+        <span id="portfolioMeta" class="meta"></span>
+      </div>
+      <div class="table-wrap">
+        <table id="portfolioTable">
+          <thead>
+            <tr>
+              <th class="col-rank">#</th>
+              <th>股票代號</th>
+              <th>股票名稱</th>
+              <th class="num">持有股數</th>
+              <th class="num">持有權重</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="diffSection" class="card section hidden" role="tabpanel">
+      <div class="section-head">
+        <h2>差異比對</h2>
+        <span id="diffMeta" class="meta"></span>
+      </div>
+      <p id="diffHint" class="empty">請在上方選擇「比較基準日」即可顯示差異。</p>
+      <div id="diffBlocks"></div>
+    </section>
+  </main>
 
   <script src="app.js"></script>
 </body>

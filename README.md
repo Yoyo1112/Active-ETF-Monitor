@@ -22,20 +22,6 @@ python app.py
 gunicorn app:app          # 預設 8000 埠
 ```
 
-## 部署到 Render（免費、雲端常駐）
-
-任何裝置（手機 / iPad / 電腦）隨時可開，不必開著自己的電腦。
-
-1. 把這個專案推到一個 GitHub repo。
-2. 登入 [Render](https://render.com)（免費帳號）。
-3. **New + → Blueprint**，選剛剛的 repo —— Render 會讀 `render.yaml`
-   自動建立一個免費 Web Service。
-   （或 **New + → Web Service**，Build＝`pip install -r requirements.txt`、
-   Start＝`gunicorn app:app`、Plan 選 Free。）
-4. 部署完成後得到公開網址，如 `https://active-etf-pcf.onrender.com`。
-
-> 免費方案閒置會休眠，首次打開約等 30 秒喚醒，之後正常。
-
 ## 說明
 
 - 資料即時向 ezmoney 抓取，並以 SQLite (`data/portfolio.db`) 做快取加速。
