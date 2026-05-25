@@ -147,7 +147,6 @@ function renderPortfolio(data) {
     )}</td></tr>`;
     return;
   }
-  if (data.tran_date) $("#dateInput").value = data.tran_date;
 
   const maxWeight = Math.max(...data.holdings.map((h) => h.weight), 0.0001);
   data.holdings.forEach((h, i) => {
@@ -315,6 +314,8 @@ document.querySelectorAll(".view-tab").forEach((t) => {
 // ---- Boot ----
 (async function main() {
   initTheme();
+  const { date: defaultDate } = await (await fetch("/api/default_date")).json();
+  $("#dateInput").value = defaultDate;
   await initEtfs();
   await loadLatest();
 })();

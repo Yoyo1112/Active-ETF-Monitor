@@ -32,6 +32,12 @@ def api_etfs():
     return jsonify(list(FUND_CODES.keys()))
 
 
+@app.route("/api/default_date")
+def api_default_date():
+    """依台北時間回傳預設查詢日期（17:30 後為下個交易日）。"""
+    return jsonify({"date": default_query_date().isoformat()})
+
+
 @app.route("/api/portfolio")
 def api_portfolio():
     """取得某 ETF 某日投資組合。date 省略＝抓最新一日。
