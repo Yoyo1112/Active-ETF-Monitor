@@ -29,13 +29,3 @@ gunicorn app:app          # 預設 8000 埠
 - ETF 代號對應 ezmoney 內部 fundCode：00981A→49YTW、00403A→63YTW
   （見 `ezmoney.py` 的 `FUND_CODES`）。
 - 基金成立日之前或非揭露日會顯示「當日無資料」。
-
-## 檔案
-
-| 檔案 | 用途 |
-|------|------|
-| `app.py` | Flask 路由與 API |
-| `ezmoney.py` | 抓取 / 解析 GetPCF、民國日期轉換 |
-| `store.py` | SQLite 快取 |
-| `static/` | 前端單頁 (HTML/CSS/JS) |
-| `render.yaml`, `Procfile` | Render 部署設定 |
