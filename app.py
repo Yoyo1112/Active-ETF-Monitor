@@ -34,7 +34,7 @@ def api_etfs():
 
 @app.route("/api/default_date")
 def api_default_date():
-    """依台北時間回傳預設查詢日期（17:30 後為下個交易日）。"""
+    """依台北時間回傳預設查詢日期（16:30 後為當天，否則為前一交易日）。"""
     return jsonify({"date": default_query_date().isoformat()})
 
 
@@ -52,7 +52,7 @@ def api_portfolio():
     if date_str:
         want_date = _parse_iso(date_str)
     else:
-        # 沒帶日期：依台北時間決定預設 — 17:30 後券商已公告下一交易日 PCF，自動往後推
+        # 沒帶日期：依台北時間決定預設 — 16:30 後當日 PCF 已揭露用當天，否則用前一交易日
         want_date = default_query_date()
 
     # 有指定日且快取已有 -> 直接回快取
@@ -76,7 +76,7 @@ def api_portfolio():
 
     tran_date = result["tran_date"]
     if not result["holdings"] or tran_date is None:
-        # 回傳實際請求的日期 (避免 17:30 後預設下個交易日但 ezmoney 尚未有資料時 UI 變空)
+        # 回傳實際請求的日期 (避免預設日 ezmoney 尚未有資料時 UI 變空)
         fallback_iso = date_str or want_date.isoformat()
         return jsonify(
             {

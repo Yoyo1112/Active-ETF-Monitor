@@ -6,7 +6,7 @@ from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
-PUBLISH_CUTOFF = time(17, 30)  # 過此時間後預設下個交易日
+PUBLISH_CUTOFF = time(16, 30)  # 過此時間後當日 PCF 已揭露，預設用當天
 
 # 2026 台股休市日 (依 TWSE 公告，平日休市才需列入；週末不必列)
 # ⚠️ 最終請以 TWSE「停止交易日期表」官方檔為準再核對一次
@@ -38,15 +38,24 @@ def next_trading_day(d: date) -> date:
     return nxt
 
 
+def previous_trading_day(d: date) -> date:
+    """回傳嚴格小於 d 的前一個交易日。"""
+    prev = d - timedelta(days=1)
+    while not is_trading_day(prev):
+        prev -= timedelta(days=1)
+    return prev
+
+
 def default_query_date(now: datetime | None = None) -> date:
     """預設要查的 PCF 日期。
 
     規則：依台北時間判斷
-      - 當下 ≥ 17:30 → 回傳下一個交易日 (跳過週末 + 假日)
-      - 否則         → 回傳今天
+      - 今天是交易日且當下 ≥ 16:30 → 回傳今天 (當日 PCF 已揭露)
+      - 否則                        → 回傳前一個交易日 (跳過週末 + 假日)
     """
     if now is None:
         now = datetime.now(TAIPEI_TZ)
-    if now.time() >= PUBLISH_CUTOFF:
-        return next_trading_day(now.date())
-    return now.date()
+    today = now.date()
+    if is_trading_day(today) and now.time() >= PUBLISH_CUTOFF:
+        return today
+    return previous_trading_day(today)
